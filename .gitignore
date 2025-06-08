@@ -1,0 +1,40 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# IDEs and editors
+.vscode/
+
+# Optional: Ignore Brave extensions, Puppeteer cache
+.brave/
+.cache/
+puppeteer_cache/
+
+downloaded_transcriptions/
+test/
+package-lock.json
