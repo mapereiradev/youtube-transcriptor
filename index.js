@@ -1,9 +1,6 @@
 import express from 'express';
 import puppeteer from 'puppeteer-core';
-import os from 'os';
-import { writeFile } from 'fs/promises';
 
-// CONFIG
 const executablePath = '/snap/bin/brave';
 
 const app = express();
@@ -31,18 +28,18 @@ app.post('/transcribe', async (req, res) => {
     // Wait for main content
     await page.waitForSelector('#info-container', { timeout: 10000 });
 
-    // Click to reveal transcript or similar
+    // Click to reveal transcript
     await page.evaluate(() => {
       const infoContainer = document.querySelector('#info-container');
       if (infoContainer) infoContainer.click();
 
-      const button = document.querySelector('#primary-button').children[0].children[0].children[0];
+      const button = document.querySelector('#primary-button')?.children?.[0]?.children?.[0]?.children?.[0];
       if (button) button.click();
     });
 
     await new Promise(resolve => setTimeout(resolve, 2500));
 
-    const transcript = await page.evaluate(() => {
+    const transcript = await page.evaluate((format) => {
       const segmentsContainer = document.querySelector('#segments-container');
       if (!segmentsContainer) return '';
       if (!format || format !== 'markdown') {
@@ -58,11 +55,9 @@ app.post('/transcribe', async (req, res) => {
         acc[acc.currentTitle] += `${curr.getElementsByTagName('yt-formatted-string')[0].innerText} `;
         return acc;
       }, {});
-      
       return Object.keys(transcriptDict).reduce((acc, curr) => acc +=`## ${curr}\n${transcriptDict[curr]}`,'');
 
     });
-    
     // const title = await page.evaluate(() => { document.querySelector('title').innerText });
 
     await browser.close();
@@ -71,6 +66,27 @@ app.post('/transcribe', async (req, res) => {
 
     // return res.json({ title, transcript });
     res.set('Content-type', 'text/plain'
+
+      const children = Array.from(segmentsContainer.children);
+      const data = children.reduce((acc, curr) => {
+        const tag = curr.tagName.toUpperCase();
+        if (tag === 'YTD-TRANSCRIPT-SECTION-HEADER-RENDERER') {
+          const title = curr.innerText.trim();
+          acc.currentKey = title;
+          acc.result[title] = '';
+        } else if (acc.currentKey) {
+          const text = curr.querySelector('yt-formatted-string')?.innerText?.trim();
+          if (text) acc.result[acc.currentKey] += (acc.result[acc.currentKey] ? ' ' : '') + text;
+        }
+        return acc;
+      }, { result: {}, currentKey: null }).result;
+
+      return Object.entries(data).map(([section, content]) => `## ${section}\n${content}`).join('\n\n');
+    }, format);
+
+    await browser.close();
+
+    res.set('Content-Type', 'text/plain');
     res.send(transcript);
 
   } catch (err) {
