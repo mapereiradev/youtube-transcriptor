@@ -36,7 +36,7 @@ app.post('/transcribe', async (req, res) => {
       const infoContainer = document.querySelector('#info-container');
       if (infoContainer) infoContainer.click();
 
-      const button = document.querySelector('.yt-spec-button-shape-next.yt-spec-button-shape-next--outline.yt-spec-button-shape-next--call-to-action.yt-spec-button-shape-next--size-m.yt-spec-button-shape-next--enable-backdrop-filter-experiment');
+      const button = document.querySelector('#primary-button').children[0].children[0].children[0];
       if (button) button.click();
     });
 
@@ -48,10 +48,14 @@ app.post('/transcribe', async (req, res) => {
       const segments = segmentsContainer.querySelectorAll('yt-formatted-string');
       return Array.from(segments).map(el => el.innerText).join(' ');
     });
+    
+    const title = await page.evaluate(() => { document.querySelector('title').innerText });
 
     await browser.close();
 
-    return res.json({ transcript });
+    console.log(title);
+
+    return res.json({ title, transcript });
 
   } catch (err) {
     console.error('Failed to extract transcript:', err);
