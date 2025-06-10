@@ -39,7 +39,7 @@ app.post('/transcribe', async (req, res) => {
 
     await new Promise(resolve => setTimeout(resolve, 2500));
 
-    const transcript = await page.evaluate((format) => {
+    const transcript = await page.evaluate(() => {
       const segmentsContainer = document.querySelector('#segments-container');
       if (!segmentsContainer) return '';
       if (!format || format !== 'markdown') {
@@ -59,30 +59,6 @@ app.post('/transcribe', async (req, res) => {
 
     });
     // const title = await page.evaluate(() => { document.querySelector('title').innerText });
-
-    await browser.close();
-
-    console.log(title);
-
-    // return res.json({ title, transcript });
-    res.set('Content-type', 'text/plain'
-
-      const children = Array.from(segmentsContainer.children);
-      const data = children.reduce((acc, curr) => {
-        const tag = curr.tagName.toUpperCase();
-        if (tag === 'YTD-TRANSCRIPT-SECTION-HEADER-RENDERER') {
-          const title = curr.innerText.trim();
-          acc.currentKey = title;
-          acc.result[title] = '';
-        } else if (acc.currentKey) {
-          const text = curr.querySelector('yt-formatted-string')?.innerText?.trim();
-          if (text) acc.result[acc.currentKey] += (acc.result[acc.currentKey] ? ' ' : '') + text;
-        }
-        return acc;
-      }, { result: {}, currentKey: null }).result;
-
-      return Object.entries(data).map(([section, content]) => `## ${section}\n${content}`).join('\n\n');
-    }, format);
 
     await browser.close();
 
