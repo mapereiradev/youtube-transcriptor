@@ -46,7 +46,7 @@ app.post('/transcribe', async (req, res) => {
         const segments = segmentsContainer.querySelectorAll('yt-formatted-string');
         return Array.from(segments).map(el => el.innerText).join(' ');
       }
-      const dicc = Array.from(document.getElementById('segments-container').children).reduce((acc, curr) => {
+      const dicc = Array.from(segmentsContainer.children).reduce((acc, curr) => {
         if (curr.tagName === 'ytd-transcript-section-header-renderer'.toUpperCase()) {
           acc[curr.innerText] = '';
           acc.currentTitle = curr.innerText;
@@ -55,15 +55,16 @@ app.post('/transcribe', async (req, res) => {
         acc[acc.currentTitle] += `${curr.getElementsByTagName('yt-formatted-string')[0].innerText} `;
         return acc;
       }, {});
-      return Object.keys(transcriptDict).reduce((acc, curr) => acc +=`## ${curr}\n${transcriptDict[curr]}`,'');
-
-    });
+      const result = Object.keys(dicc).reduce((acc, curr) => acc +=`\n## ${curr}\n${dicc[curr]}`,'');
+      delete result.currentTitle;
+      return result;
+    }, format);
     // const title = await page.evaluate(() => { document.querySelector('title').innerText });
 
     await browser.close();
 
-    res.set('Content-Type', 'text/plain');
     res.send(transcript);
+    // return res.json(transcript);
 
   } catch (err) {
     console.error('Failed to extract transcript:', err);
