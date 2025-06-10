@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 
 app.post('/transcribe', async (req, res) => {
-  const { url } = req.body;
+  const { url, format } = req.body;
   if (!url || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid or missing YouTube URL.' });
   }
@@ -45,17 +45,33 @@ app.post('/transcribe', async (req, res) => {
     const transcript = await page.evaluate(() => {
       const segmentsContainer = document.querySelector('#segments-container');
       if (!segmentsContainer) return '';
-      const segments = segmentsContainer.querySelectorAll('yt-formatted-string');
-      return Array.from(segments).map(el => el.innerText).join(' ');
+      if (!format || format !== 'markdown') {
+        const segments = segmentsContainer.querySelectorAll('yt-formatted-string');
+        return Array.from(segments).map(el => el.innerText).join(' ');
+      }
+      const dicc = Array.from(document.getElementById('segments-container').children).reduce((acc, curr) => {
+        if (curr.tagName === 'ytd-transcript-section-header-renderer'.toUpperCase()) {
+          acc[curr.innerText] = '';
+          acc.currentTitle = curr.innerText;
+          return acc;
+        }
+        acc[acc.currentTitle] += `${curr.getElementsByTagName('yt-formatted-string')[0].innerText} `;
+        return acc;
+      }, {});
+      
+      return Object.keys(transcriptDict).reduce((acc, curr) => acc +=`## ${curr}\n${transcriptDict[curr]}`,'');
+
     });
     
-    const title = await page.evaluate(() => { document.querySelector('title').innerText });
+    // const title = await page.evaluate(() => { document.querySelector('title').innerText });
 
     await browser.close();
 
     console.log(title);
 
-    return res.json({ title, transcript });
+    // return res.json({ title, transcript });
+    res.set('Content-type', 'text/plain'
+    res.send(transcript);
 
   } catch (err) {
     console.error('Failed to extract transcript:', err);
