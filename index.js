@@ -39,7 +39,7 @@ app.post('/transcribe', async (req, res) => {
 
     await new Promise(resolve => setTimeout(resolve, 2500));
 
-    const transcript = await page.evaluate(() => {
+    const transcript = await page.evaluate((format) => {
       const segmentsContainer = document.querySelector('#segments-container');
       if (!segmentsContainer) return '';
       if (!format || format !== 'markdown') {
