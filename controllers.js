@@ -86,7 +86,9 @@ export async function renderHandler(req, res) {
 
 
 async function transcribe(url, format) {
-  const executablePath = '/snap/bin/brave';
+  // const executablePath = '/snap/bin/brave';
+  const executablePath = process.env.BRAVE_EXECUTABLE || '/usr/bin/brave-browser';
+
 
   if (!url || !url.startsWith('http')) {
     return res.status(400).json({ error: 'Invalid or missing YouTube URL.' });
