@@ -28,7 +28,7 @@ A Node.js API that uses Puppeteer with the Brave browser (running inside a virtu
   "title": "Video Title",
   "transcript": "Full transcript text from segments"
 }
-
+```
 ## 🐳 Installation via Docker
 
 ### 1\. Clone this repository
