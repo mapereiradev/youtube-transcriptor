@@ -23,7 +23,9 @@ A Node.js API that uses Puppeteer with the Brave browser (running inside a virtu
 {
   "url": "https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
 }
-
+```
+**Response Body:**
+```
 {
   "title": "Video Title",
   "transcript": "Full transcript text from segments"
