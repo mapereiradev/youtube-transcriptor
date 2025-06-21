@@ -25,7 +25,7 @@ A Node.js API that uses Puppeteer with the Brave browser (running inside a virtu
 }
 ```
 **Response Body:**
-```
+```json
 {
   "title": "Video Title",
   "transcript": "Full transcript text from segments"
