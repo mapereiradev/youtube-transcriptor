@@ -84,6 +84,53 @@ export async function renderHandler(req, res) {
   res.send(html);
 }
 
+export async function getChannelVideosIds(req, res) {
+
+  const channelName = req.query.channelName;
+  const url = `https://www.youtube.com/@${channelName}/videos`
+
+  let browser;
+
+  try {
+    browser = await puppeteer.launch({
+      // executablePath: process.env.BRAVE_EXECUTABLE || '/usr/bin/brave-browser',
+      executablePath:  '/snap/bin/brave',
+      headless: false,
+      defaultViewport: { width: 1280, height: 1024 },
+      args: ['--no-sandbox']
+    });
+
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'networkidle2' });
+
+    await page.evaluate(async () => {
+      const delay = ms => new Promise(res => setTimeout(res, ms));
+      let lastHeight = 0;
+      while (true) {
+        window.scrollBy(0, 2000);
+        await delay(1000);
+        const currentHeight = document.documentElement.scrollHeight;
+        if (currentHeight === lastHeight) break;
+        lastHeight = currentHeight;
+      }
+    });
+
+    const videoIds = await page.evaluate(() => {
+      const matches = [...document.body.innerHTML.matchAll(/watch\?v=([a-zA-Z0-9_-]{11})/g)].map(m => m[1]);
+      return [...new Set(matches)];
+    });
+
+    await browser.close();
+
+    const fullUrls = videoIds.map(id => `https://www.youtube.com/watch?v=${id}`);
+    return res.json({ count: fullUrls.length, videos: fullUrls });
+
+  } catch (err) {
+    console.error('Failed to extract videos:', err);
+    if (browser) await browser.close();
+    return res.status(500).json({ error: 'Failed to extract video list' });
+  }
+}
 
 async function transcribe(url, format) {
   // const executablePath = '/snap/bin/brave';
